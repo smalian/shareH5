@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-title" content=""/>
+    <meta name="description" content=""/>
+    <meta name="keywords" content=""/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta content="telephone=no" name="format-detection"/>
+    <title>动态</title>
+    <script>
+        !function (N, M) {
+            function L() {
+                var a = I.getBoundingClientRect().width;
+                a / F > 640 && (a = 640 * F);
+                var d = a / 10;
+                I.style.fontSize = d + "px", D.rem = N.rem = d
+            }
+
+            var K, J = N.document, I = J.documentElement, H = J.querySelector('meta[name="viewport"]'),
+                G = J.querySelector('meta[name="flexible"]'), F = 0, E = 0, D = M.flexible || (M.flexible = {});
+            if (H) {
+                console.warn("将根据已有的meta标签来设置缩放比例");
+                var C = H.getAttribute("content").match(/initial\-scale=([\d\.]+)/);
+                C && (E = parseFloat(C[1]), F = parseInt(1 / E))
+            } else {
+                if (G) {
+                    var B = G.getAttribute("content");
+                    if (B) {
+                        var A = B.match(/initial\-dpr=([\d\.]+)/), z = B.match(/maximum\-dpr=([\d\.]+)/);
+                        A && (F = parseFloat(A[1]), E = parseFloat((1 / F).toFixed(2))), z && (F = parseFloat(z[1]), E = parseFloat((1 / F).toFixed(2)))
+                    }
+                }
+            }
+            if (!F && !E) {
+                var y = N.navigator.userAgent, x = (!!y.match(/android/gi), !!y.match(/iphone/gi)),
+                    w = x && !!y.match(/OS 9_3/), v = N.devicePixelRatio;
+                F = x && !w ? v >= 3 && (!F || F >= 3) ? 3 : v >= 2 && (!F || F >= 2) ? 2 : 1 : 1, E = 1 / F
+            }
+            if (I.setAttribute("data-dpr", F), !H) {
+                if (H = J.createElement("meta"), H.setAttribute("name", "viewport"), H.setAttribute("content", "initial-scale=" + E + ", maximum-scale=" + E + ", minimum-scale=" + E + ", user-scalable=no"), I.firstElementChild) {
+                    I.firstElementChild.appendChild(H)
+                } else {
+                    var u = J.createElement("div");
+                    u.appendChild(H), J.write(u.innerHTML)
+                }
+            }
+            N.addEventListener("resize", function () {
+                clearTimeout(K), K = setTimeout(L, 300)
+            }, !1), N.addEventListener("pageshow", function (b) {
+                b.persisted && (clearTimeout(K), K = setTimeout(L, 300))
+            }, !1), "complete" === J.readyState ? J.body.style.fontSize = 12 * F + "px" : J.addEventListener("DOMContentLoaded", function () {
+                J.body.style.fontSize = 12 * F + "px"
+            }, !1), L(), D.dpr = N.dpr = F, D.refreshRem = L, D.rem2px = function (d) {
+                var c = parseFloat(d) * this.rem;
+                return "string" == typeof d && d.match(/rem$/) && (c += "px"), c
+            }, D.px2rem = function (d) {
+                var c = parseFloat(d) / this.rem;
+                return "string" == typeof d && d.match(/px$/) && (c += "rem"), c
+            }
+        }(window, window.lib || (window.lib = {}));
+    </script>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet/less" href="css/dynamicDetail.less">
+    <script src="js/apiConfig.js"></script>
+    <script src="js/lib/less.min.js"></script>
+    <!--<script src="js/lib/traceur.js"></script>-->
+    <!--<script src="js/lib/BrowserSystem.js"></script>-->
+    <script src="js/lib/require.js" data-main="js/dynamicDetail.js"></script>
+</head>
+<body>
+<div class="box" id="dynamicDetail" v-cloak>
+    <section class="mContent">
+        <!-- header start -->
+        <header>
+            <a href="javascript:history.go(-1);" class="backBtn"></a>
+            <h3>动态详情</h3>
+        </header>
+        <!-- header end -->
+
+        <!-- dynamic content start -->
+        <section class="dynamicContent">
+            <section class="topDiv clear">
+                <img class="avatar" :src="picture.url" alt="">
+                <div class="authorTime">
+                    <span>{{allData.name}}</span>
+                    <span>{{allData.time}}</span>
+                </div>
+            </section>
+            <!-- 动态标题 -->
+            <p class="dynamTitle">{{allData.title}}</p>
+            <!-- 动态内容 start-->
+            <section class="contentDiv" v-html="allData.content">
+
+            </section>
+            <!-- 动态内容 end -->
+            <!-- tip start -->
+            <section class="tipDiv clear">
+                <span class="tip">以上内容不构成任何投资建议</span>
+            </section>
+            <!-- tip end -->
+        </section>
+        <!-- dynamic content end -->
+
+
+        <!-- recommend fund start -->
+        <section @click="openApp" v-if="recommendFund.productname" class="recommendFundBox">
+            <a href="javascript:void(0);" class="linkToApp flex">
+                <span class="tagText"><i>{{recommendFund.briefreco}}</i></span>
+                <section class="leftDiv">
+                    <span>{{recommendFund.profitvalue}}%</span>
+                    <span>{{recommendFund.profitdesc}}</span>
+                </section>
+                <section class="rightDiv flex-1">
+                    <span>{{recommendFund.productname}}</span>
+                    <span>{{recommendFund.recoreason}}</span>
+                </section>
+            </a>
+        </section>
+        <!-- recommend fund end -->
+
+        <comment v-on:openapp="openApp" v-if="hotCommentList.length" :data="hotCommentList" title-text="热评"></comment>
+
+        <comment v-on:openapp="openApp" :num="allData.commentcount" v-if="commentList.length" :show-num-flag="true"
+                 :data="commentList" title-text="最新评论"></comment>
+
+
+        <!-- accept answer end -->
+
+        <!-- openApp start -->
+        <section class="fixedBtn">
+            <a href="javascript:void(0)" @click="openApp" class="openApp">查看详情</a>
+
+        </section>
+        <!-- openApp end -->
+
+
+    </section>
+    <!-- 微信/微博展示 -->
+    <div class="downAppTipWrap" ref="weiShowWrap" @click="closeWeiShowWrap">
+        <!--<img @click="closeWeiShowWrap" class="wrapImg" src="image/test1.jpg" alt="">-->
+        <div class="arrow">
+            <p class="clear">
+                <span>点击右上角的</span>
+                <span class="menuImg"></span>
+                <span>按钮</span>
+            </p>
+            <p class="clear">
+                <span>选择</span>
+                <span class="textImg"></span></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
